@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Neo-brutalism colors
+				'neo-yellow': '#FDE047',
+				'neo-pink': '#FB7185',
+				'neo-blue': '#3B82F6',
+				'neo-green': '#10B981',
+				'neo-purple': '#8B5CF6',
+				'neo-orange': '#F97316',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -89,6 +97,11 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			boxShadow: {
+				'neo': '4px 4px 0px 0px #000000',
+				'neo-sm': '2px 2px 0px 0px #000000',
+				'neo-lg': '8px 8px 0px 0px #000000',
 			}
 		}
 	},

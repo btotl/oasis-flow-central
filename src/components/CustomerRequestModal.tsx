@@ -1,5 +1,7 @@
+
 import { useState } from 'react';
 import { Maximize2, Trash2, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface CustomerRequest {
   id: string;
@@ -13,6 +15,7 @@ interface CustomerRequest {
   urgency: 'low' | 'medium' | 'high';
   status: 'pending' | 'sourcing' | 'available' | 'fulfilled';
   notes: string;
+  archived: boolean;
 }
 
 interface CustomerRequestModalProps {
@@ -32,7 +35,8 @@ export const CustomerRequestModal = ({ onClose }: CustomerRequestModalProps) => 
       date: new Date(2024, 5, 8),
       urgency: 'medium',
       status: 'sourcing',
-      notes: 'Customer wants mature plant for living room centerpiece'
+      notes: 'Customer wants mature plant for living room centerpiece',
+      archived: false
     }
   ]);
 
@@ -53,7 +57,8 @@ export const CustomerRequestModal = ({ onClose }: CustomerRequestModalProps) => 
         id: Date.now().toString(),
         ...newRequest,
         date: new Date(),
-        status: 'pending'
+        status: 'pending',
+        archived: false
       };
       setRequests([...requests, request]);
       setNewRequest({
@@ -72,6 +77,12 @@ export const CustomerRequestModal = ({ onClose }: CustomerRequestModalProps) => 
   const updateStatus = (id: string, status: CustomerRequest['status']) => {
     setRequests(requests.map(request => 
       request.id === id ? { ...request, status } : request
+    ));
+  };
+
+  const archiveRequest = (id: string) => {
+    setRequests(requests.map(request =>
+      request.id === id ? { ...request, archived: true } : request
     ));
   };
 
@@ -94,19 +105,21 @@ export const CustomerRequestModal = ({ onClose }: CustomerRequestModalProps) => 
     }
   };
 
+  const activeRequests = requests.filter(r => !r.archived);
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="neo-card p-6 max-w-6xl max-h-[90vh] overflow-auto w-full">
+      <div className="neo-card p-6 max-w-6xl max-h-[90vh] overflow-auto w-full rounded-3xl">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <h2 className="text-3xl font-bold">Customer Requests</h2>
-            <button
-              onClick={() => console.log('Open full requests page')}
-              className="p-2 bg-neo-blue text-white rounded-lg border-2 border-black hover:bg-blue-600"
+            <Link
+              to="/requests"
+              className="p-2 bg-neo-blue text-white rounded-xl border-4 border-black hover:bg-blue-600"
               title="Open full page view"
             >
               <Maximize2 size={20} />
-            </button>
+            </Link>
           </div>
           <button
             onClick={onClose}
@@ -117,7 +130,7 @@ export const CustomerRequestModal = ({ onClose }: CustomerRequestModalProps) => 
         </div>
 
         {/* Add new request */}
-        <div className="neo-card p-4 mb-6 bg-neo-green/20">
+        <div className="neo-card p-4 mb-6 bg-neo-green/20 rounded-2xl">
           <h3 className="text-xl font-bold mb-4">Add New Request</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <select
@@ -199,15 +212,15 @@ export const CustomerRequestModal = ({ onClose }: CustomerRequestModalProps) => 
 
         {/* Requests list */}
         <div className="space-y-4">
-          {requests.map((request) => (
-            <div key={request.id} className="neo-card p-4 bg-white relative">
+          {activeRequests.map((request) => (
+            <div key={request.id} className="neo-card p-4 bg-white relative rounded-2xl">
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                 <div>
                   <div className="flex gap-2 mb-2">
-                    <span className="text-xs font-bold bg-black text-white px-2 py-1 uppercase">
+                    <span className="text-xs font-bold bg-black text-white px-2 py-1 uppercase rounded-lg">
                       {request.category}
                     </span>
-                    <span className={`text-xs font-bold text-white px-2 py-1 ${getUrgencyColor(request.urgency)}`}>
+                    <span className={`text-xs font-bold text-white px-2 py-1 rounded-lg ${getUrgencyColor(request.urgency)}`}>
                       {request.urgency}
                     </span>
                   </div>
@@ -238,7 +251,7 @@ export const CustomerRequestModal = ({ onClose }: CustomerRequestModalProps) => 
                 </div>
                 
                 <div className="flex flex-col gap-2">
-                  <span className={`text-xs font-bold text-white px-3 py-2 text-center ${getStatusColor(request.status)}`}>
+                  <span className={`text-xs font-bold text-white px-3 py-2 text-center rounded-lg ${getStatusColor(request.status)}`}>
                     {request.status.toUpperCase()}
                   </span>
                   <select
@@ -254,7 +267,7 @@ export const CustomerRequestModal = ({ onClose }: CustomerRequestModalProps) => 
                 </div>
               </div>
               <button
-                onClick={() => console.log('Delete request', request.id)}
+                onClick={() => archiveRequest(request.id)}
                 className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-lg border-2 border-black hover:bg-red-600"
               >
                 <Trash2 size={16} />

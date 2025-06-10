@@ -28,6 +28,11 @@ export const ImportantMessageModal = ({ message, onAcknowledge, onRemindLater }:
   }, []);
 
   const handleAcknowledge = () => {
+    // Save to localStorage to prevent showing again
+    const acknowledgedMessages = JSON.parse(localStorage.getItem('acknowledgedMessages') || '[]');
+    acknowledgedMessages.push(message.id);
+    localStorage.setItem('acknowledgedMessages', JSON.stringify(acknowledgedMessages));
+    
     onAcknowledge(message.id, employeeName);
   };
 
@@ -37,8 +42,8 @@ export const ImportantMessageModal = ({ message, onAcknowledge, onRemindLater }:
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="neo-card p-6 w-full max-w-lg">
-        <div className="bg-red-100 border-4 border-red-500 p-4 mb-4">
+      <div className="neo-card p-6 w-full max-w-lg rounded-3xl">
+        <div className="bg-red-100 border-4 border-red-500 p-4 mb-4 rounded-2xl">
           <h2 className="text-2xl font-bold text-red-800 mb-2">Important Notice</h2>
           <h3 className="text-xl font-bold mb-2">{message.title}</h3>
           <p className="text-gray-800">{message.content}</p>

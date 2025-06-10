@@ -6,7 +6,9 @@ import { LaybyModal } from './LaybyModal';
 import { CustomerRequestModal } from './CustomerRequestModal';
 import { MessageManagementModal } from './MessageManagementModal';
 import { ImportantMessage } from './ImportantMessage';
-import { Maximize2, Trash2 } from 'lucide-react';
+import { NotificationSystem } from './NotificationSystem';
+import { TimeTracking } from './TimeTracking';
+import { Trash2, Upload } from 'lucide-react';
 
 interface ManagerDashboardProps {
   importantMessages: ImportantMessage[];
@@ -27,8 +29,19 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
-    imageUrl: ''
+    imageFile: null as File | null
   });
+
+  const [notifications, setNotifications] = useState([
+    {
+      id: '1',
+      type: 'info' as const,
+      title: 'New Customer Request',
+      message: 'Emma Wilson requested a Bird of Paradise plant',
+      timestamp: new Date(),
+      read: false
+    }
+  ]);
 
   const openModal = (modalType: string) => {
     setActiveModal(modalType);
@@ -42,7 +55,7 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
     if (newTask.title && newTask.description) {
       console.log('Adding task:', newTask);
       // In a real app, this would update the task list state
-      setNewTask({ title: '', description: '', imageUrl: '' });
+      setNewTask({ title: '', description: '', imageFile: null });
     }
   };
 
@@ -61,66 +74,68 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
     setImportantMessages(prev => prev.filter(msg => msg.id !== messageId));
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setNewTask({ ...newTask, imageFile: e.target.files[0] });
+    }
+  };
+
   const deleteNote = (noteId: string) => {
     console.log('Deleting note:', noteId);
     // In a real app, this would update the notes state
   };
 
+  const markNotificationAsRead = (id: string) => {
+    setNotifications(prev => 
+      prev.map(notif => notif.id === id ? { ...notif, read: true } : notif)
+    );
+  };
+
+  const dismissNotification = (id: string) => {
+    setNotifications(prev => prev.filter(notif => notif.id !== id));
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Manager Header */}
-      <div className="neo-card p-4 sm:p-6 bg-neo-purple/20">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900">Manager Dashboard</h2>
+      <div className="neo-card p-4 sm:p-6 bg-neo-purple/20 rounded-3xl">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Manager Dashboard</h2>
+          <div className="flex gap-3">
+            <NotificationSystem 
+              notifications={notifications}
+              onMarkAsRead={markNotificationAsRead}
+              onDismiss={dismissNotification}
+            />
+            <TimeTracking />
+          </div>
+        </div>
       </div>
 
       {/* Management Actions */}
-      <div className="neo-card p-4 sm:p-6">
+      <div className="neo-card p-4 sm:p-6 rounded-3xl">
         <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900">Management Tools</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div className="relative">
-            <button
-              onClick={() => openModal('voucher')}
-              className="neo-button bg-neo-pink text-white h-12 sm:h-16 text-sm sm:text-base w-full"
-            >
-              Gift Vouchers
-            </button>
-            <button
-              onClick={() => console.log('Open vouchers page')}
-              className="absolute top-2 right-2 p-1 bg-white rounded-lg border-2 border-black hover:bg-gray-100"
-            >
-              <Maximize2 size={14} />
-            </button>
-          </div>
+          <button
+            onClick={() => openModal('voucher')}
+            className="neo-button bg-neo-pink text-white h-12 sm:h-16 text-sm sm:text-base"
+          >
+            Gift Vouchers
+          </button>
           
-          <div className="relative">
-            <button
-              onClick={() => openModal('layby')}
-              className="neo-button bg-neo-blue text-white h-12 sm:h-16 text-sm sm:text-base w-full"
-            >
-              Laybys
-            </button>
-            <button
-              onClick={() => console.log('Open laybys page')}
-              className="absolute top-2 right-2 p-1 bg-white rounded-lg border-2 border-black hover:bg-gray-100"
-            >
-              <Maximize2 size={14} />
-            </button>
-          </div>
+          <button
+            onClick={() => openModal('layby')}
+            className="neo-button bg-neo-blue text-white h-12 sm:h-16 text-sm sm:text-base"
+          >
+            Laybys
+          </button>
           
-          <div className="relative">
-            <button
-              onClick={() => openModal('request')}
-              className="neo-button bg-neo-green text-white h-12 sm:h-16 text-sm sm:text-base w-full"
-            >
-              Customer Requests
-            </button>
-            <button
-              onClick={() => console.log('Open requests page')}
-              className="absolute top-2 right-2 p-1 bg-white rounded-lg border-2 border-black hover:bg-gray-100"
-            >
-              <Maximize2 size={14} />
-            </button>
-          </div>
+          <button
+            onClick={() => openModal('request')}
+            className="neo-button bg-neo-green text-white h-12 sm:h-16 text-sm sm:text-base"
+          >
+            Customer Requests
+          </button>
           
           <button
             onClick={() => openModal('messages')}
@@ -135,7 +150,7 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <div className="space-y-4">
           {/* Add Task Form */}
-          <div className="neo-card p-4 sm:p-6 bg-neo-yellow/20">
+          <div className="neo-card p-4 sm:p-6 bg-neo-yellow/20 rounded-3xl">
             <h3 className="text-lg font-bold mb-3 text-gray-900">Add New Task</h3>
             <div className="space-y-3">
               <input
@@ -145,20 +160,29 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
                 onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                 className="neo-input w-full"
               />
-              <input
-                type="text"
+              <textarea
                 placeholder="Task description"
                 value={newTask.description}
                 onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                className="neo-input w-full"
+                className="neo-input w-full h-20 resize-none"
               />
-              <input
-                type="url"
-                placeholder="Image URL (optional)"
-                value={newTask.imageUrl}
-                onChange={(e) => setNewTask({ ...newTask, imageUrl: e.target.value })}
-                className="neo-input w-full"
-              />
+              <div>
+                <label className="neo-button-tab cursor-pointer inline-flex items-center gap-2">
+                  <Upload size={16} />
+                  Upload Image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                </label>
+                {newTask.imageFile && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    Selected: {newTask.imageFile.name}
+                  </p>
+                )}
+              </div>
               <button
                 onClick={handleAddTask}
                 className="neo-button-primary w-full"
@@ -168,11 +192,11 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
             </div>
           </div>
           
-          <TaskList />
+          <TaskList isManagerView={true} />
         </div>
         
         {/* Employee Notes (Read-only for manager) */}
-        <div className="neo-card p-4 sm:p-6">
+        <div className="neo-card p-4 sm:p-6 rounded-3xl">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900">Employee Notes</h2>
           
           <div className="space-y-3 max-h-80 overflow-y-auto neo-scrollbar">

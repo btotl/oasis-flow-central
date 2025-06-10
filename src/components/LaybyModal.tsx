@@ -1,5 +1,7 @@
+
 import { useState } from 'react';
 import { Maximize2, Trash2, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Layby {
   id: string;
@@ -11,6 +13,7 @@ interface Layby {
   deposit: number;
   balance: number;
   creationDate: Date;
+  archived: boolean;
 }
 
 interface LaybyModalProps {
@@ -28,7 +31,8 @@ export const LaybyModal = ({ onClose }: LaybyModalProps) => {
       total: 280,
       deposit: 100,
       balance: 180,
-      creationDate: new Date(2024, 5, 5)
+      creationDate: new Date(2024, 5, 5),
+      archived: false
     }
   ]);
 
@@ -49,7 +53,8 @@ export const LaybyModal = ({ onClose }: LaybyModalProps) => {
         id: Date.now().toString(),
         ...newLayby,
         balance: newLayby.total - newLayby.deposit,
-        creationDate: new Date()
+        creationDate: new Date(),
+        archived: false
       };
       setLaybys([...laybys, layby]);
       setNewLayby({
@@ -80,19 +85,27 @@ export const LaybyModal = ({ onClose }: LaybyModalProps) => {
     }
   };
 
+  const archiveLayby = (id: string) => {
+    setLaybys(laybys.map(layby =>
+      layby.id === id ? { ...layby, archived: true } : layby
+    ));
+  };
+
+  const activeLaybys = laybys.filter(l => !l.archived);
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="neo-card p-6 max-w-6xl max-h-[90vh] overflow-auto w-full">
+      <div className="neo-card p-6 max-w-6xl max-h-[90vh] overflow-auto w-full rounded-3xl">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <h2 className="text-3xl font-bold">Layby Tracker</h2>
-            <button
-              onClick={() => console.log('Open full laybys page')}
-              className="p-2 bg-neo-blue text-white rounded-lg border-2 border-black hover:bg-blue-600"
+            <Link
+              to="/laybys"
+              className="p-2 bg-neo-blue text-white rounded-xl border-4 border-black hover:bg-blue-600"
               title="Open full page view"
             >
               <Maximize2 size={20} />
-            </button>
+            </Link>
           </div>
           <button
             onClick={onClose}
@@ -103,7 +116,7 @@ export const LaybyModal = ({ onClose }: LaybyModalProps) => {
         </div>
 
         {/* Add new layby */}
-        <div className="neo-card p-4 mb-6 bg-neo-blue/20">
+        <div className="neo-card p-4 mb-6 bg-neo-blue/20 rounded-2xl">
           <h3 className="text-xl font-bold mb-4">Add New Layby</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <input
@@ -159,8 +172,8 @@ export const LaybyModal = ({ onClose }: LaybyModalProps) => {
 
         {/* Laybys list */}
         <div className="space-y-4">
-          {laybys.map((layby) => (
-            <div key={layby.id} className="neo-card p-4 bg-white relative">
+          {activeLaybys.map((layby) => (
+            <div key={layby.id} className="neo-card p-4 bg-white relative rounded-2xl">
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                 <div>
                   <p className="font-bold text-lg">#{layby.laybyNumber}</p>
@@ -208,14 +221,14 @@ export const LaybyModal = ({ onClose }: LaybyModalProps) => {
                 
                 {layby.balance === 0 && (
                   <div className="flex items-center">
-                    <span className="bg-green-500 text-white px-4 py-2 font-bold border-4 border-black">
-                      ✓ PAID IN FULL
+                    <span className="bg-green-500 text-white px-4 py-2 font-bold border-4 border-black rounded-xl">
+                      PAID IN FULL
                     </span>
                   </div>
                 )}
               </div>
               <button
-                onClick={() => console.log('Delete layby', layby.id)}
+                onClick={() => archiveLayby(layby.id)}
                 className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-lg border-2 border-black hover:bg-red-600"
               >
                 <Trash2 size={16} />

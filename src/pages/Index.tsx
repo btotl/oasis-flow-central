@@ -13,8 +13,11 @@ const Index = () => {
   const [currentMessage, setCurrentMessage] = useState<ImportantMessage | null>(null);
 
   useEffect(() => {
+    const acknowledgedMessages = JSON.parse(localStorage.getItem('acknowledgedMessages') || '[]');
+    
     // Check for important messages that haven't been acknowledged
     const unacknowledgedMessage = importantMessages.find(msg => 
+      !acknowledgedMessages.includes(msg.id) &&
       !msg.acknowledgedBy.some(ack => ack.employeeName === 'Current Employee')
     );
     
@@ -61,9 +64,12 @@ const Index = () => {
     setCurrentMessage(null);
     // Set a timeout to show the message again later (e.g., in 1 hour)
     setTimeout(() => {
-      const message = importantMessages.find(msg => msg.id === messageId);
-      if (message) {
-        setCurrentMessage(message);
+      const acknowledgedMessages = JSON.parse(localStorage.getItem('acknowledgedMessages') || '[]');
+      if (!acknowledgedMessages.includes(messageId)) {
+        const message = importantMessages.find(msg => msg.id === messageId);
+        if (message) {
+          setCurrentMessage(message);
+        }
       }
     }, 60000); // 1 minute for demo purposes
   };
@@ -72,7 +78,7 @@ const Index = () => {
     <div className="min-h-screen bg-gray-100 p-2 sm:p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="neo-card p-4 sm:p-6 mb-4 sm:mb-6">
+        <div className="neo-card p-4 sm:p-6 mb-4 sm:mb-6 rounded-3xl">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 text-center sm:text-left">
               Plant Nursery Dashboard

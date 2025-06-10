@@ -1,56 +1,81 @@
 
+import { useState } from 'react';
+
+interface UrgentItem {
+  id: string;
+  title: string;
+  category: 'task' | 'voucher' | 'layby' | 'request';
+  priority: 'high' | 'medium' | 'low';
+  dueDate?: Date;
+  description: string;
+}
+
 export const UrgentItems = () => {
-  const urgentItems = [
+  const [urgentItems] = useState<UrgentItem[]>([
     {
-      type: 'Task',
-      title: 'Water greenhouse plants',
-      priority: 'High',
-      color: 'bg-red-100 border-red-500'
+      id: '1',
+      title: 'Check Bird of Paradise availability',
+      category: 'request',
+      priority: 'high',
+      dueDate: new Date(2024, 5, 12),
+      description: 'Customer Emma Wilson needs large Bird of Paradise for living room'
     },
     {
-      type: 'Voucher',
-      title: 'Gift voucher #V001 expires today',
-      priority: 'Medium',
-      color: 'bg-yellow-100 border-yellow-500'
+      id: '2', 
+      title: 'Process layby payment',
+      category: 'layby',
+      priority: 'medium',
+      description: 'Alice Brown - $180 remaining balance'
     },
     {
-      type: 'Layby',
-      title: 'Customer pickup due: L004',
-      priority: 'High',
-      color: 'bg-red-100 border-red-500'
-    },
-    {
-      type: 'Request',
-      title: 'Rare fern requested - check availability',
-      priority: 'Low',
-      color: 'bg-green-100 border-green-500'
+      id: '3',
+      title: 'Voucher expires soon',
+      category: 'voucher', 
+      priority: 'medium',
+      description: 'John Smith voucher #V001 - $70 remaining'
     }
-  ];
+  ]);
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'low': return 'bg-green-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'task': return 'bg-blue-500';
+      case 'voucher': return 'bg-purple-500';
+      case 'layby': return 'bg-orange-500';
+      case 'request': return 'bg-green-600';
+      default: return 'bg-gray-500';
+    }
+  };
 
   return (
-    <div className="neo-card p-4 sm:p-6">
+    <div className="neo-card p-4 sm:p-6 rounded-3xl">
       <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900">Urgent Items</h3>
       <div className="space-y-3 max-h-80 overflow-y-auto neo-scrollbar">
-        {urgentItems.map((item, index) => (
-          <div
-            key={index}
-            className={`${item.color} border-4 p-3 transition-all duration-200 hover:translate-x-1 hover:translate-y-1`}
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex-1 min-w-0">
-                <span className="text-xs font-bold bg-black text-white px-2 py-1 uppercase">
-                  {item.type}
-                </span>
-                <p className="text-gray-900 font-medium mt-1 text-sm sm:text-base break-words">{item.title}</p>
-              </div>
-              <span className={`text-xs font-bold px-2 py-1 ml-2 flex-shrink-0 ${
-                item.priority === 'High' ? 'bg-red-500 text-white' :
-                item.priority === 'Medium' ? 'bg-yellow-500 text-black' :
-                'bg-green-500 text-white'
-              }`}>
-                {item.priority}
+        {urgentItems.map((item) => (
+          <div key={item.id} className="bg-white border-4 border-black p-4 rounded-2xl">
+            <div className="flex gap-2 mb-2">
+              <span className={`text-xs font-bold text-white px-2 py-1 rounded-lg ${getPriorityColor(item.priority)}`}>
+                {item.priority.toUpperCase()}
+              </span>
+              <span className={`text-xs font-bold text-white px-2 py-1 rounded-lg ${getCategoryColor(item.category)}`}>
+                {item.category.toUpperCase()}
               </span>
             </div>
+            <h4 className="font-bold text-gray-900 mb-1">{item.title}</h4>
+            <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+            {item.dueDate && (
+              <p className="text-xs text-red-600 font-bold">
+                Due: {item.dueDate.toLocaleDateString()}
+              </p>
+            )}
           </div>
         ))}
       </div>

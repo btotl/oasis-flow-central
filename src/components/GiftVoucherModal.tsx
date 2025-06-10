@@ -1,5 +1,7 @@
+
 import { useState } from 'react';
 import { Maximize2, Trash2, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Voucher {
   id: string;
@@ -9,6 +11,7 @@ interface Voucher {
   amount: number;
   usedAmount: number;
   creationDate: Date;
+  archived: boolean;
 }
 
 interface GiftVoucherModalProps {
@@ -24,7 +27,8 @@ export const GiftVoucherModal = ({ onClose }: GiftVoucherModalProps) => {
       fromName: 'Mary Johnson',
       amount: 100,
       usedAmount: 30,
-      creationDate: new Date(2024, 5, 1)
+      creationDate: new Date(2024, 5, 1),
+      archived: false
     }
   ]);
 
@@ -43,7 +47,8 @@ export const GiftVoucherModal = ({ onClose }: GiftVoucherModalProps) => {
         id: Date.now().toString(),
         ...newVoucher,
         usedAmount: 0,
-        creationDate: new Date()
+        creationDate: new Date(),
+        archived: false
       };
       setVouchers([...vouchers, voucher]);
       setNewVoucher({ voucherNumber: '', recipientName: '', fromName: '', amount: 0 });
@@ -63,19 +68,27 @@ export const GiftVoucherModal = ({ onClose }: GiftVoucherModalProps) => {
     }
   };
 
+  const archiveVoucher = (id: string) => {
+    setVouchers(vouchers.map(voucher =>
+      voucher.id === id ? { ...voucher, archived: true } : voucher
+    ));
+  };
+
+  const activeVouchers = vouchers.filter(v => !v.archived);
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="neo-card p-6 max-w-4xl max-h-[90vh] overflow-auto w-full">
+      <div className="neo-card p-6 max-w-4xl max-h-[90vh] overflow-auto w-full rounded-3xl">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <h2 className="text-3xl font-bold">Gift Voucher Log</h2>
-            <button
-              onClick={() => console.log('Open full vouchers page')}
-              className="p-2 bg-neo-blue text-white rounded-lg border-2 border-black hover:bg-blue-600"
+            <Link
+              to="/vouchers"
+              className="p-2 bg-neo-blue text-white rounded-xl border-4 border-black hover:bg-blue-600"
               title="Open full page view"
             >
               <Maximize2 size={20} />
-            </button>
+            </Link>
           </div>
           <button
             onClick={onClose}
@@ -86,7 +99,7 @@ export const GiftVoucherModal = ({ onClose }: GiftVoucherModalProps) => {
         </div>
 
         {/* Add new voucher */}
-        <div className="neo-card p-4 mb-6 bg-neo-pink/20">
+        <div className="neo-card p-4 mb-6 bg-neo-pink/20 rounded-2xl">
           <h3 className="text-xl font-bold mb-4">Add New Voucher</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input
@@ -128,8 +141,8 @@ export const GiftVoucherModal = ({ onClose }: GiftVoucherModalProps) => {
 
         {/* Vouchers list */}
         <div className="space-y-4">
-          {vouchers.map((voucher) => (
-            <div key={voucher.id} className="neo-card p-4 bg-white relative">
+          {activeVouchers.map((voucher) => (
+            <div key={voucher.id} className="neo-card p-4 bg-white relative rounded-2xl">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <p className="font-bold text-lg">#{voucher.voucherNumber}</p>
@@ -169,7 +182,7 @@ export const GiftVoucherModal = ({ onClose }: GiftVoucherModalProps) => {
               </div>
               
               <button
-                onClick={() => console.log('Delete voucher', voucher.id)}
+                onClick={() => archiveVoucher(voucher.id)}
                 className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-lg border-2 border-black hover:bg-red-600"
               >
                 <Trash2 size={16} />

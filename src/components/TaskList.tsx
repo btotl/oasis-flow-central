@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { ImageModal } from './ImageModal';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Trash2 } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -36,11 +36,16 @@ export const TaskList = () => {
   ]);
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
 
   const toggleTask = (id: string) => {
     setTasks(tasks.map(task => 
       task.id === id ? { ...task, completed: !task.completed } : task
     ));
+  };
+
+  const deleteTask = (id: string) => {
+    setTasks(tasks.filter(task => task.id !== id));
   };
 
   const completedTasks = tasks.filter(task => task.completed);
@@ -64,7 +69,7 @@ export const TaskList = () => {
           <img
             src={task.imageUrl}
             alt={task.title}
-            className="w-12 h-12 sm:w-16 sm:h-16 object-cover border-4 border-black cursor-pointer hover:scale-105 transition-transform flex-shrink-0"
+            className="w-12 h-12 sm:w-16 sm:h-16 object-cover border-4 border-black cursor-pointer hover:scale-105 transition-transform flex-shrink-0 rounded-xl"
             onClick={() => setSelectedImage(task.imageUrl)}
           />
         )}
@@ -77,6 +82,14 @@ export const TaskList = () => {
             {task.description}
           </p>
         </div>
+
+        <button
+          onClick={() => deleteTask(task.id)}
+          className="neo-button-danger p-2 flex-shrink-0"
+          title="Delete task"
+        >
+          <Trash2 size={16} />
+        </button>
       </div>
     </div>
   );
@@ -86,38 +99,40 @@ export const TaskList = () => {
       <div className="neo-card p-4 sm:p-6">
         <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900">Employee To-Do List</h2>
         
-        <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="pending" className="font-bold">
-              Pending ({pendingTasks.length})
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="font-bold">
-              Completed ({completedTasks.length})
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="pending">
-            <div className="space-y-4 max-h-96 overflow-y-auto neo-scrollbar">
-              {pendingTasks.map((task) => (
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setActiveTab('pending')}
+            className={activeTab === 'pending' ? 'neo-button-tab-active' : 'neo-button-tab'}
+          >
+            Pending ({pendingTasks.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('completed')}
+            className={activeTab === 'completed' ? 'neo-button-tab-active' : 'neo-button-tab'}
+          >
+            Completed ({completedTasks.length})
+          </button>
+        </div>
+        
+        <div className="space-y-4 max-h-96 overflow-y-auto neo-scrollbar">
+          {activeTab === 'pending' ? (
+            pendingTasks.length > 0 ? (
+              pendingTasks.map((task) => (
                 <TaskItem key={task.id} task={task} />
-              ))}
-              {pendingTasks.length === 0 && (
-                <p className="text-gray-500 text-center py-8">No pending tasks</p>
-              )}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="completed">
-            <div className="space-y-4 max-h-96 overflow-y-auto neo-scrollbar">
-              {completedTasks.map((task) => (
+              ))
+            ) : (
+              <p className="text-gray-500 text-center py-8">No pending tasks</p>
+            )
+          ) : (
+            completedTasks.length > 0 ? (
+              completedTasks.map((task) => (
                 <TaskItem key={task.id} task={task} />
-              ))}
-              {completedTasks.length === 0 && (
-                <p className="text-gray-500 text-center py-8">No completed tasks</p>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+              ))
+            ) : (
+              <p className="text-gray-500 text-center py-8">No completed tasks</p>
+            )
+          )}
+        </div>
       </div>
 
       {selectedImage && (

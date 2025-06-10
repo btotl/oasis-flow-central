@@ -1,5 +1,5 @@
-
 import { useState } from 'react';
+import { Maximize2, Trash2, X } from 'lucide-react';
 
 interface CustomerRequest {
   id: string;
@@ -98,12 +98,21 @@ export const CustomerRequestModal = ({ onClose }: CustomerRequestModalProps) => 
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="neo-card p-6 max-w-6xl max-h-[90vh] overflow-auto w-full">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold">🌿 Customer Requests</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-3xl font-bold">Customer Requests</h2>
+            <button
+              onClick={() => console.log('Open full requests page')}
+              className="p-2 bg-neo-blue text-white rounded-lg border-2 border-black hover:bg-blue-600"
+              title="Open full page view"
+            >
+              <Maximize2 size={20} />
+            </button>
+          </div>
           <button
             onClick={onClose}
-            className="neo-button bg-red-500 text-white"
+            className="neo-button-danger"
           >
-            ✕ Close
+            <X size={20} />
           </button>
         </div>
 
@@ -191,7 +200,7 @@ export const CustomerRequestModal = ({ onClose }: CustomerRequestModalProps) => 
         {/* Requests list */}
         <div className="space-y-4">
           {requests.map((request) => (
-            <div key={request.id} className="neo-card p-4 bg-white">
+            <div key={request.id} className="neo-card p-4 bg-white relative">
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                 <div>
                   <div className="flex gap-2 mb-2">
@@ -244,6 +253,12 @@ export const CustomerRequestModal = ({ onClose }: CustomerRequestModalProps) => 
                   </select>
                 </div>
               </div>
+              <button
+                onClick={() => console.log('Delete request', request.id)}
+                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-lg border-2 border-black hover:bg-red-600"
+              >
+                <Trash2 size={16} />
+              </button>
             </div>
           ))}
         </div>

@@ -1,5 +1,5 @@
-
 import { useState } from 'react';
+import { Maximize2, Trash2, X } from 'lucide-react';
 
 interface Voucher {
   id: string;
@@ -67,12 +67,21 @@ export const GiftVoucherModal = ({ onClose }: GiftVoucherModalProps) => {
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="neo-card p-6 max-w-4xl max-h-[90vh] overflow-auto w-full">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold">🎁 Gift Voucher Log</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-3xl font-bold">Gift Voucher Log</h2>
+            <button
+              onClick={() => console.log('Open full vouchers page')}
+              className="p-2 bg-neo-blue text-white rounded-lg border-2 border-black hover:bg-blue-600"
+              title="Open full page view"
+            >
+              <Maximize2 size={20} />
+            </button>
+          </div>
           <button
             onClick={onClose}
-            className="neo-button bg-red-500 text-white"
+            className="neo-button-danger"
           >
-            ✕ Close
+            <X size={20} />
           </button>
         </div>
 
@@ -120,7 +129,7 @@ export const GiftVoucherModal = ({ onClose }: GiftVoucherModalProps) => {
         {/* Vouchers list */}
         <div className="space-y-4">
           {vouchers.map((voucher) => (
-            <div key={voucher.id} className="neo-card p-4 bg-white">
+            <div key={voucher.id} className="neo-card p-4 bg-white relative">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <p className="font-bold text-lg">#{voucher.voucherNumber}</p>
@@ -158,6 +167,13 @@ export const GiftVoucherModal = ({ onClose }: GiftVoucherModalProps) => {
                   </button>
                 </div>
               </div>
+              
+              <button
+                onClick={() => console.log('Delete voucher', voucher.id)}
+                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-lg border-2 border-black hover:bg-red-600"
+              >
+                <Trash2 size={16} />
+              </button>
             </div>
           ))}
         </div>

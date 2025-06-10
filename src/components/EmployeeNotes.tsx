@@ -33,8 +33,8 @@ export const EmployeeNotes = () => {
   };
 
   return (
-    <div className="neo-card p-6">
-      <h2 className="text-3xl font-bold mb-6 text-gray-900">📝 Notes for Manager</h2>
+    <div className="neo-card p-4 sm:p-6">
+      <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900">Notes for Manager</h2>
       
       {/* Add new note */}
       <div className="mb-6">
@@ -42,24 +42,24 @@ export const EmployeeNotes = () => {
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
           placeholder="Leave a note for the manager..."
-          className="neo-input w-full h-24 resize-none"
+          className="neo-input w-full h-20 sm:h-24 resize-none text-sm sm:text-base"
         />
         <button
           onClick={addNote}
-          className="neo-button bg-neo-orange text-white mt-3"
+          className="neo-button-primary mt-3 w-full sm:w-auto"
         >
           Add Note
         </button>
       </div>
 
       {/* Notes list */}
-      <div className="space-y-3">
+      <div className="space-y-3 max-h-80 overflow-y-auto neo-scrollbar">
         {notes.map((note) => (
           <div key={note.id} className="bg-neo-yellow/30 border-4 border-black p-4">
-            <p className="text-gray-900 font-medium">{note.content}</p>
-            <div className="flex justify-between items-center mt-2 text-sm text-gray-600">
+            <p className="text-gray-900 font-medium text-sm sm:text-base break-words">{note.content}</p>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-2 text-xs sm:text-sm text-gray-600">
               <span>By: {note.author}</span>
-              <span>{note.timestamp.toLocaleDateString()} at {note.timestamp.toLocaleTimeString()}</span>
+              <span className="mt-1 sm:mt-0">{note.timestamp.toLocaleDateString()} at {note.timestamp.toLocaleTimeString()}</span>
             </div>
           </div>
         ))}

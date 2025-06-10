@@ -19,38 +19,38 @@ export const EmployeeDashboard = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
       {/* Left Side - Employee Tasks and Notes */}
-      <div className="lg:col-span-2 space-y-6">
+      <div className="lg:col-span-2 space-y-4 sm:space-y-6">
         <TaskList />
         <EmployeeNotes />
       </div>
 
       {/* Right Side - Urgent Items and Quick Actions */}
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <UrgentItems />
         
         {/* Quick Actions */}
-        <div className="neo-card p-6">
-          <h3 className="text-2xl font-bold mb-4 text-gray-900">Quick Actions</h3>
+        <div className="neo-card p-4 sm:p-6">
+          <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900">Quick Actions</h3>
           <div className="space-y-3">
             <button
               onClick={() => openModal('voucher')}
-              className="neo-button bg-neo-pink text-white w-full"
+              className="neo-button bg-neo-pink text-white w-full text-sm sm:text-base"
             >
-              🎁 Gift Vouchers
+              Gift Vouchers
             </button>
             <button
               onClick={() => openModal('layby')}
-              className="neo-button bg-neo-blue text-white w-full"
+              className="neo-button bg-neo-blue text-white w-full text-sm sm:text-base"
             >
-              📦 Layby Tracker
+              Layby Tracker
             </button>
             <button
               onClick={() => openModal('request')}
-              className="neo-button bg-neo-green text-white w-full"
+              className="neo-button bg-neo-green text-white w-full text-sm sm:text-base"
             >
-              🌿 Customer Requests
+              Customer Requests
             </button>
           </div>
         </div>

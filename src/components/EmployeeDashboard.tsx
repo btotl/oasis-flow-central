@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { TaskList } from './TaskList';
 import { EmployeeNotes } from './EmployeeNotes';
 import { UrgentItems } from './UrgentItems';
+import { TimeTracking } from './TimeTracking';
 import { GiftVoucherModal } from './GiftVoucherModal';
 import { LaybyModal } from './LaybyModal';
 import { CustomerRequestModal } from './CustomerRequestModal';
@@ -26,8 +27,9 @@ export const EmployeeDashboard = () => {
         <EmployeeNotes />
       </div>
 
-      {/* Right Side - Urgent Items and Quick Actions */}
+      {/* Right Side - Time Tracking, Urgent Items and Quick Actions */}
       <div className="space-y-4 sm:space-y-6">
+        <TimeTracking />
         <UrgentItems />
         
         {/* Quick Actions */}

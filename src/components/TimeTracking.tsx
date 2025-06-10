@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { db, TimeEntryData } from '../utils/database';
 
 interface TimeEntry {
   id: string;
@@ -21,22 +22,35 @@ export const TimeTracking = () => {
       setCurrentTime(new Date());
     }, 1000);
 
+    // Load time entries from database
+    loadTimeEntries();
+
     return () => clearInterval(timer);
   }, []);
+
+  const loadTimeEntries = () => {
+    const entries = db.getTimeEntries().map(entry => ({
+      ...entry,
+      clockIn: new Date(entry.clockIn),
+      clockOut: entry.clockOut ? new Date(entry.clockOut) : undefined
+    }));
+    setTimeEntries(entries);
+  };
 
   const handleClockIn = () => {
     const now = new Date();
     setIsClocked(true);
     setCurrentSession(now);
     
-    const newEntry: TimeEntry = {
+    const newEntry: TimeEntryData = {
       id: Date.now().toString(),
       employeeName: localStorage.getItem('employeeName') || 'Employee',
-      clockIn: now,
+      clockIn: now.toISOString(),
       date: now.toDateString()
     };
     
-    setTimeEntries(prev => [...prev, newEntry]);
+    db.addTimeEntry(newEntry);
+    loadTimeEntries();
   };
 
   const handleClockOut = () => {
@@ -44,13 +58,18 @@ export const TimeTracking = () => {
       const now = new Date();
       const totalHours = (now.getTime() - currentSession.getTime()) / (1000 * 60 * 60);
       
-      setTimeEntries(prev => 
-        prev.map(entry => 
-          entry.clockIn === currentSession 
-            ? { ...entry, clockOut: now, totalHours: Math.round(totalHours * 100) / 100 }
-            : entry
-        )
-      );
+      // Find and update the current session
+      const currentEntryId = timeEntries.find(entry => 
+        entry.clockIn.getTime() === currentSession.getTime()
+      )?.id;
+      
+      if (currentEntryId) {
+        db.updateTimeEntry(currentEntryId, {
+          clockOut: now.toISOString(),
+          totalHours: Math.round(totalHours * 100) / 100
+        });
+        loadTimeEntries();
+      }
       
       setIsClocked(false);
       setCurrentSession(null);

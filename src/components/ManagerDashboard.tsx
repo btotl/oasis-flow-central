@@ -7,8 +7,8 @@ import { CustomerRequestModal } from './CustomerRequestModal';
 import { MessageManagementModal } from './MessageManagementModal';
 import { ImportantMessage } from './ImportantMessage';
 import { NotificationSystem } from './NotificationSystem';
-import { TimeTracking } from './TimeTracking';
-import { Trash2, Upload } from 'lucide-react';
+import { TimeLogsModal } from './TimeLogsModal';
+import { Trash2, Upload, Clock } from 'lucide-react';
 
 interface ManagerDashboardProps {
   importantMessages: ImportantMessage[];
@@ -107,7 +107,13 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
               onMarkAsRead={markNotificationAsRead}
               onDismiss={dismissNotification}
             />
-            <TimeTracking />
+            <button
+              onClick={() => openModal('timeLogs')}
+              className="neo-button bg-blue-500 text-white px-4 py-2 rounded-2xl flex items-center gap-2"
+            >
+              <Clock size={16} />
+              Time Logs
+            </button>
           </div>
         </div>
       </div>
@@ -223,6 +229,7 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
       {activeModal === 'voucher' && <GiftVoucherModal onClose={closeModal} />}
       {activeModal === 'layby' && <LaybyModal onClose={closeModal} />}
       {activeModal === 'request' && <CustomerRequestModal onClose={closeModal} />}
+      {activeModal === 'timeLogs' && <TimeLogsModal onClose={closeModal} />}
       {activeModal === 'messages' && (
         <MessageManagementModal
           messages={importantMessages}

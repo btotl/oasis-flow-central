@@ -1,9 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 
-export const useSupabaseData = <T>(
-  table: string,
+type TableName = keyof Database['public']['Tables'];
+
+export const useSupabaseData = <T extends Record<string, any>>(
+  table: TableName,
   dependencies: any[] = []
 ) => {
   const [data, setData] = useState<T[]>([]);
@@ -19,7 +22,7 @@ export const useSupabaseData = <T>(
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setData(result || []);
+      setData((result as T[]) || []);
       setError(null);
     } catch (err) {
       console.error(`Error fetching ${table}:`, err);

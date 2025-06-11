@@ -1,59 +1,44 @@
 
 import { useState, useEffect } from 'react';
-import { ImageModal } from './ImageModal';
-import { Trash2, Upload, Star } from 'lucide-react';
+import { CheckCircle, Circle, Upload, Eye, Calendar, Clock, Archive } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  completed: boolean;
-  urgent: boolean;
-  assigned_to?: string;
-  priority: 'low' | 'medium' | 'high';
-  due_date?: string;
-  image_url?: string;
-  before_image_url?: string;
-  after_image_url?: string;
-  hidden_until?: string;
-  created_at: string;
-  updated_at: string;
-}
+import { Task } from '@/types/database';
 
 interface TaskListProps {
   isManagerView?: boolean;
-  onDeleteTask?: (id: string) => void;
 }
 
-export const TaskList = ({ isManagerView = false, onDeleteTask }: TaskListProps) => {
-  const { profile } = useAuth();
+export const TaskList = ({ isManagerView = false }: TaskListProps) => {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState<'all' | 'completed' | 'incomplete'>('all');
+
+  useEffect(() => {
+    fetchTasks();
+  }, [user]);
 
   const fetchTasks = async () => {
+    if (!user) return;
+    
     try {
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
-        .order('urgent', { ascending: false })
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       
-      // Filter out hidden tasks for employees
+      // Filter out hidden tasks for employee view
       const now = new Date();
-      const filteredTasks = data?.filter(task => {
-        if (isManagerView) return true;
-        if (!task.hidden_until) return true;
-        return new Date(task.hidden_until) <= now;
-      }) || [];
+      const filteredTasks = isManagerView 
+        ? data || []
+        : (data || []).filter((task: any) => 
+            !task.hidden_until || new Date(task.hidden_until) <= now
+          );
       
-      setTasks(filteredTasks);
+      setTasks(filteredTasks as Task[]);
     } catch (error) {
       console.error('Error fetching tasks:', error);
     } finally {
@@ -61,265 +46,207 @@ export const TaskList = ({ isManagerView = false, onDeleteTask }: TaskListProps)
     }
   };
 
-  useEffect(() => {
-    fetchTasks();
-  }, [isManagerView]);
-
-  const toggleTask = async (id: string) => {
+  const toggleTask = async (taskId: string, completed: boolean) => {
     try {
-      const task = tasks.find(t => t.id === id);
       const { error } = await supabase
         .from('tasks')
-        .update({ completed: !task?.completed })
-        .eq('id', id);
+        .update({ completed, updated_at: new Date().toISOString() })
+        .eq('id', taskId);
       
       if (error) throw error;
-      fetchTasks();
+      
+      setTasks(tasks.map(task => 
+        task.id === taskId ? { ...task, completed } : task
+      ));
     } catch (error) {
       console.error('Error updating task:', error);
     }
   };
 
-  const toggleUrgent = async (id: string) => {
+  const markUrgent = async (taskId: string, urgent: boolean) => {
     try {
-      const task = tasks.find(t => t.id === id);
       const { error } = await supabase
         .from('tasks')
-        .update({ urgent: !task?.urgent })
-        .eq('id', id);
+        .update({ urgent, updated_at: new Date().toISOString() })
+        .eq('id', taskId);
       
       if (error) throw error;
-      fetchTasks();
+      
+      setTasks(tasks.map(task => 
+        task.id === taskId ? { ...task, urgent } : task
+      ));
     } catch (error) {
       console.error('Error updating task urgency:', error);
     }
   };
 
-  const hideUntilLater = async (id: string) => {
+  const hideTask = async (taskId: string, hours: number = 2) => {
+    const hiddenUntil = new Date();
+    hiddenUntil.setHours(hiddenUntil.getHours() + hours);
+    
     try {
-      const hideUntil = new Date();
-      hideUntil.setHours(hideUntil.getHours() + 2); // Hide for 2 hours
-      
       const { error } = await supabase
         .from('tasks')
-        .update({ hidden_until: hideUntil.toISOString() })
-        .eq('id', id);
+        .update({ 
+          hidden_until: hiddenUntil.toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', taskId);
       
       if (error) throw error;
-      fetchTasks();
+      
+      // Remove from current view for employees
+      if (!isManagerView) {
+        setTasks(tasks.filter(task => task.id !== taskId));
+      }
     } catch (error) {
       console.error('Error hiding task:', error);
     }
   };
 
-  const deleteTask = async (id: string) => {
-    if (onDeleteTask) {
-      onDeleteTask(id);
-    }
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-      fetchTasks();
-    } catch (error) {
-      console.error('Error deleting task:', error);
-    }
-  };
-
-  const uploadTaskImage = async (taskId: string, imageType: 'before' | 'after', file: File) => {
-    try {
-      // In a real app, you'd upload to Supabase Storage
-      // For now, we'll use object URLs
-      const imageUrl = URL.createObjectURL(file);
-      const updateField = imageType === 'before' ? 'before_image_url' : 'after_image_url';
-      
-      const { error } = await supabase
-        .from('tasks')
-        .update({ [updateField]: imageUrl })
-        .eq('id', taskId);
-      
-      if (error) throw error;
-      fetchTasks();
-    } catch (error) {
-      console.error('Error uploading image:', error);
-    }
-  };
-
   const filteredTasks = tasks.filter(task => {
-    const matchesTab = activeTab === 'pending' ? !task.completed : task.completed;
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesTab && matchesSearch;
+    if (filter === 'completed') return task.completed;
+    if (filter === 'incomplete') return !task.completed;
+    return true;
   });
 
-  if (loading) {
-    return (
-      <div className="neo-card p-6">
-        <div className="text-center">Loading tasks...</div>
-      </div>
-    );
-  }
+  if (loading) return <div className="p-4">Loading tasks...</div>;
 
-  const TaskItem = ({ task }: { task: Task }) => (
-    <div
-      className={`neo-card p-4 transition-all duration-200 ${
-        task.completed ? 'bg-neo-green/20' : task.urgent ? 'bg-neo-pink/20' : 'bg-white'
-      }`}
-    >
-      <div className="flex items-start gap-4">
-        <input
-          type="checkbox"
-          checked={task.completed}
-          onChange={() => toggleTask(task.id)}
-          className="neo-checkbox mt-1 flex-shrink-0"
-        />
+  return (
+    <div className="neo-card p-4 sm:p-6 rounded-3xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          {isManagerView ? 'Manage Tasks' : 'To-Do List'}
+        </h2>
         
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className={`text-lg sm:text-xl font-bold break-words ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-              {task.title}
-            </h3>
-            {task.urgent && (
-              <Star className="text-neo-pink flex-shrink-0" size={20} fill="currentColor" />
-            )}
-          </div>
-          
-          <p className={`text-sm sm:text-base text-gray-600 mb-2 break-words ${task.completed ? 'line-through' : ''}`}>
-            {task.description}
-          </p>
-          
-          {!task.completed && !isManagerView && (
-            <div className="flex gap-2 mb-2">
-              <button
-                onClick={() => toggleUrgent(task.id)}
-                className={task.urgent ? 'neo-button bg-neo-pink text-white px-2 py-1 text-xs' : 'neo-button-tab px-2 py-1 text-xs'}
-              >
-                <Star size={12} className="inline mr-1" />
-                {task.urgent ? 'Urgent' : 'Mark Urgent'}
-              </button>
-              <button
-                onClick={() => hideUntilLater(task.id)}
-                className="neo-button-tab px-2 py-1 text-xs"
-              >
-                Close Until Later
-              </button>
-              <label className="neo-button-tab px-2 py-1 text-xs cursor-pointer">
-                <Upload size={12} className="inline mr-1" />
-                Before
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => e.target.files?.[0] && uploadTaskImage(task.id, 'before', e.target.files[0])}
-                />
-              </label>
-              <label className="neo-button-tab px-2 py-1 text-xs cursor-pointer">
-                <Upload size={12} className="inline mr-1" />
-                After
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => e.target.files?.[0] && uploadTaskImage(task.id, 'after', e.target.files[0])}
-                />
-              </label>
-            </div>
-          )}
-        </div>
-
-        {/* Images on the right */}
-        <div className="flex gap-2 flex-shrink-0">
-          {task.image_url && (
-            <img
-              src={task.image_url}
-              alt={task.title}
-              className="w-12 h-12 sm:w-16 sm:h-16 object-cover border-4 border-black cursor-pointer hover:scale-105 transition-transform rounded-xl"
-              onClick={() => setSelectedImage(task.image_url)}
-            />
-          )}
-          {task.before_image_url && (
-            <img
-              src={task.before_image_url}
-              alt="Before"
-              className="w-12 h-12 sm:w-16 sm:h-16 object-cover border-4 border-black cursor-pointer hover:scale-105 transition-transform rounded-xl"
-              onClick={() => setSelectedImage(task.before_image_url)}
-            />
-          )}
-          {task.after_image_url && (
-            <img
-              src={task.after_image_url}
-              alt="After"
-              className="w-12 h-12 sm:w-16 sm:h-16 object-cover border-4 border-black cursor-pointer hover:scale-105 transition-transform rounded-xl"
-              onClick={() => setSelectedImage(task.after_image_url)}
-            />
-          )}
-        </div>
-
-        {isManagerView && (
+        <div className="flex gap-2">
           <button
-            onClick={() => deleteTask(task.id)}
-            className="neo-button-danger p-2 flex-shrink-0"
-            title="Delete task"
+            onClick={() => setFilter('all')}
+            className={filter === 'all' ? 'neo-button-tab-active' : 'neo-button-tab'}
           >
-            <Trash2 size={16} />
+            All ({tasks.length})
           </button>
+          <button
+            onClick={() => setFilter('incomplete')}
+            className={filter === 'incomplete' ? 'neo-button-tab-active' : 'neo-button-tab'}
+          >
+            To Do ({tasks.filter(t => !t.completed).length})
+          </button>
+          <button
+            onClick={() => setFilter('completed')}
+            className={filter === 'completed' ? 'neo-button-tab-active' : 'neo-button-tab'}
+          >
+            Done ({tasks.filter(t => t.completed).length})
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-3 max-h-96 overflow-y-auto neo-scrollbar">
+        {filteredTasks.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No tasks found. {isManagerView ? 'Add some tasks to get started!' : 'Great job - all caught up!'}
+          </div>
+        ) : (
+          filteredTasks.map((task) => (
+            <div key={task.id} className="bg-white border-4 border-black rounded-2xl overflow-hidden">
+              <div className="p-4">
+                <div className="flex items-start gap-4">
+                  {/* Left side - Checkbox and content */}
+                  <div className="flex-1 flex items-start gap-3">
+                    <button
+                      onClick={() => toggleTask(task.id, !task.completed)}
+                      className="mt-1 flex-shrink-0"
+                    >
+                      {task.completed ? (
+                        <CheckCircle className="w-6 h-6 text-green-500" />
+                      ) : (
+                        <Circle className="w-6 h-6 text-gray-400 hover:text-green-500" />
+                      )}
+                    </button>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className={`font-bold text-lg ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                          {task.title}
+                        </h3>
+                        {task.urgent && (
+                          <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-lg font-bold">
+                            URGENT
+                          </span>
+                        )}
+                        {task.priority && task.priority !== 'medium' && (
+                          <span className={`text-xs px-2 py-1 rounded-lg font-bold ${
+                            task.priority === 'high' ? 'bg-orange-500 text-white' :
+                            task.priority === 'low' ? 'bg-blue-500 text-white' : ''
+                          }`}>
+                            {task.priority.toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {task.description && (
+                        <p className={`text-sm mb-2 ${task.completed ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {task.description}
+                        </p>
+                      )}
+                      
+                      {task.due_date && (
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+                          <Calendar size={12} />
+                          Due: {new Date(task.due_date).toLocaleDateString()}
+                        </div>
+                      )}
+
+                      {/* Action buttons */}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {!isManagerView && (
+                          <>
+                            <button
+                              onClick={() => markUrgent(task.id, !task.urgent)}
+                              className={`text-xs px-2 py-1 rounded-lg border-2 border-black font-bold ${
+                                task.urgent 
+                                  ? 'bg-red-500 text-white' 
+                                  : 'bg-white text-gray-700 hover:bg-red-100'
+                              }`}
+                            >
+                              {task.urgent ? 'Remove Urgent' : 'Mark Urgent'}
+                            </button>
+                            <button
+                              onClick={() => hideTask(task.id)}
+                              className="text-xs px-2 py-1 rounded-lg border-2 border-black bg-yellow-500 text-white font-bold hover:bg-yellow-600"
+                            >
+                              <Clock size={12} className="inline mr-1" />
+                              Hide 2hrs
+                            </button>
+                          </>
+                        )}
+                        
+                        {(task.before_image_url || task.after_image_url) && (
+                          <button className="text-xs px-2 py-1 rounded-lg border-2 border-black bg-blue-500 text-white font-bold">
+                            <Eye size={12} className="inline mr-1" />
+                            View Images
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right side - Image */}
+                  {task.image_url && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={task.image_url}
+                        alt="Task reference"
+                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg border-2 border-black"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>
-  );
-
-  return (
-    <>
-      <div className="neo-card p-4 sm:p-6 bg-gradient-to-br from-neo-blue/10 to-neo-green/10">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-gray-900">Employee To-Do List</h2>
-        
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Search tasks..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="neo-input w-full mb-4"
-          />
-        </div>
-        
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setActiveTab('pending')}
-            className={activeTab === 'pending' ? 'neo-button-tab-active' : 'neo-button-tab'}
-          >
-            Pending ({tasks.filter(t => !t.completed).length})
-          </button>
-          <button
-            onClick={() => setActiveTab('completed')}
-            className={activeTab === 'completed' ? 'neo-button-tab-active' : 'neo-button-tab'}
-          >
-            Completed ({tasks.filter(t => t.completed).length})
-          </button>
-        </div>
-        
-        <div className="space-y-4 max-h-96 overflow-y-auto neo-scrollbar">
-          {filteredTasks.length > 0 ? (
-            filteredTasks.map((task) => (
-              <TaskItem key={task.id} task={task} />
-            ))
-          ) : (
-            <p className="text-gray-500 text-center py-8">
-              {searchTerm ? 'No tasks found matching your search' : `No ${activeTab} tasks`}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {selectedImage && (
-        <ImageModal
-          imageUrl={selectedImage}
-          onClose={() => setSelectedImage(null)}
-        />
-      )}
-    </>
   );
 };

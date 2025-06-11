@@ -4,36 +4,90 @@ import { EmployeeDashboard } from '@/components/EmployeeDashboard';
 import { ManagerDashboard } from '@/components/ManagerDashboard';
 import { PasswordModal } from '@/components/PasswordModal';
 import { ImportantMessageModal, ImportantMessage } from '@/components/ImportantMessage';
+import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
+  const { user, profile, signOut, loading } = useAuth();
   const [isManagerView, setIsManagerView] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isManagerAuthenticated, setIsManagerAuthenticated] = useState(false);
   const [importantMessages, setImportantMessages] = useState<ImportantMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState<ImportantMessage | null>(null);
 
+  // Redirect to auth if not logged in
+  if (!user && !loading) {
+    return <Navigate to="/auth" replace />;
+  }
+
   useEffect(() => {
-    const acknowledgedMessages = JSON.parse(localStorage.getItem('acknowledgedMessages') || '[]');
-    
-    // Check for important messages that haven't been acknowledged
-    const unacknowledgedMessage = importantMessages.find(msg => 
-      !acknowledgedMessages.includes(msg.id) &&
-      !msg.acknowledgedBy.some(ack => ack.employeeName === 'Current Employee')
-    );
-    
-    if (unacknowledgedMessage && !isManagerView) {
-      setCurrentMessage(unacknowledgedMessage);
+    if (profile?.role === 'manager') {
+      setIsManagerAuthenticated(true);
     }
-  }, [importantMessages, isManagerView]);
+  }, [profile]);
+
+  useEffect(() => {
+    fetchImportantMessages();
+  }, [user]);
+
+  const fetchImportantMessages = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: messages, error } = await supabase
+        .from('important_messages')
+        .select(`
+          *,
+          message_acknowledgments (
+            employee_id,
+            acknowledged_at
+          )
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      const formattedMessages = messages?.map(msg => ({
+        id: msg.id,
+        title: msg.title,
+        content: msg.content,
+        createdBy: msg.created_by,
+        createdAt: new Date(msg.created_at),
+        acknowledgedBy: msg.message_acknowledgments?.map((ack: any) => ({
+          employeeName: ack.employee_id,
+          acknowledgedAt: new Date(ack.acknowledged_at)
+        })) || []
+      })) || [];
+      
+      setImportantMessages(formattedMessages);
+      
+      // Check for unacknowledged messages
+      const unacknowledgedMessage = formattedMessages.find(msg => 
+        !msg.acknowledgedBy.some(ack => ack.employeeName === user.id)
+      );
+      
+      if (unacknowledgedMessage && !isManagerView) {
+        setCurrentMessage(unacknowledgedMessage);
+      }
+    } catch (error) {
+      console.error('Error fetching important messages:', error);
+    }
+  };
 
   const handleManagerViewToggle = () => {
     if (isManagerView) {
       // Switch back to employee view
       setIsManagerView(false);
-      setIsManagerAuthenticated(false);
+      setIsManagerAuthenticated(profile?.role === 'manager');
     } else {
-      // Request manager access
-      setShowPasswordModal(true);
+      // Check if user is already a manager
+      if (profile?.role === 'manager') {
+        setIsManagerView(true);
+      } else {
+        // Request manager access via password
+        setShowPasswordModal(true);
+      }
     }
   };
 
@@ -43,53 +97,74 @@ const Index = () => {
     setShowPasswordModal(false);
   };
 
-  const handleMessageAcknowledge = (messageId: string, employeeName: string) => {
-    setImportantMessages(prev => 
-      prev.map(msg => 
-        msg.id === messageId 
-          ? {
-              ...msg,
-              acknowledgedBy: [
-                ...msg.acknowledgedBy,
-                { employeeName, acknowledgedAt: new Date() }
-              ]
-            }
-          : msg
-      )
-    );
-    setCurrentMessage(null);
+  const handleMessageAcknowledge = async (messageId: string, employeeName: string) => {
+    try {
+      const { error } = await supabase
+        .from('message_acknowledgments')
+        .insert({
+          message_id: messageId,
+          employee_id: user?.id
+        });
+      
+      if (error) throw error;
+      
+      setCurrentMessage(null);
+      fetchImportantMessages();
+    } catch (error) {
+      console.error('Error acknowledging message:', error);
+    }
   };
 
   const handleRemindLater = (messageId: string) => {
     setCurrentMessage(null);
-    // Set a timeout to show the message again later (e.g., in 1 hour)
+    // Set a timeout to show the message again later
     setTimeout(() => {
-      const acknowledgedMessages = JSON.parse(localStorage.getItem('acknowledgedMessages') || '[]');
-      if (!acknowledgedMessages.includes(messageId)) {
-        const message = importantMessages.find(msg => msg.id === messageId);
-        if (message) {
-          setCurrentMessage(message);
-        }
+      const message = importantMessages.find(msg => msg.id === messageId);
+      if (message) {
+        setCurrentMessage(message);
       }
     }, 60000); // 1 minute for demo purposes
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="neo-card p-8">
+          <div className="text-center">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100 p-2 sm:p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-2 sm:p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="neo-card p-4 sm:p-6 mb-4 sm:mb-6 rounded-3xl">
+        <div className="neo-card p-4 sm:p-6 mb-4 sm:mb-6 rounded-3xl bg-gradient-to-r from-neo-blue/20 to-neo-green/20">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 text-center sm:text-left">
               Plant Nursery Dashboard
             </h1>
-            <button
-              onClick={handleManagerViewToggle}
-              className={isManagerView ? 'neo-button' : 'neo-button-primary'}
-            >
-              {isManagerView ? 'Switch to Employee View' : 'Manager Access'}
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={handleManagerViewToggle}
+                className={isManagerView ? 'neo-button' : 'neo-button-primary'}
+              >
+                {isManagerView ? 'Switch to Employee View' : 'Manager Access'}
+              </button>
+              <button
+                onClick={() => signOut()}
+                className="neo-button bg-red-500 text-white"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
+          {profile && (
+            <div className="mt-2 text-gray-600">
+              Welcome back, {profile.first_name}! ({profile.role})
+            </div>
+          )}
         </div>
 
         {/* Dashboard Content */}

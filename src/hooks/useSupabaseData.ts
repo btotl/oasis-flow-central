@@ -22,7 +22,7 @@ export const useSupabaseData = <T extends Record<string, any>>(
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setData((result as T[]) || []);
+      setData((result as any[]) || []);
       setError(null);
     } catch (err) {
       console.error(`Error fetching ${table}:`, err);

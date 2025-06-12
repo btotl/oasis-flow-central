@@ -12,6 +12,7 @@ interface Consignor {
   id: string;
   name: string;
   phone: string;
+  email?: string;
   created_at: string;
 }
 
@@ -19,7 +20,7 @@ interface ConsignmentItem {
   id: string;
   consignor_id: string;
   item_name: string;
-  quantity_total: number;
+  quantity: number;
   quantity_sold: number;
   cost_per_item: number;
   profit_per_item: number;
@@ -39,10 +40,10 @@ export const Consignments = () => {
   const [showAddConsignor, setShowAddConsignor] = useState(false);
   const [showAddItem, setShowAddItem] = useState(false);
   const [selectedConsignor, setSelectedConsignor] = useState<string | null>(null);
-  const [consignorForm, setConsignorForm] = useState({ name: '', phone: '' });
+  const [consignorForm, setConsignorForm] = useState({ name: '', phone: '', email: '' });
   const [itemForm, setItemForm] = useState({
     item_name: '',
-    quantity_total: 0,
+    quantity: 0,
     quantity_sold: 0,
     cost_per_item: 0,
     profit_per_item: 0
@@ -99,7 +100,7 @@ export const Consignments = () => {
         .insert(consignorForm);
 
       if (error) throw error;
-      setConsignorForm({ name: '', phone: '' });
+      setConsignorForm({ name: '', phone: '', email: '' });
       setShowAddConsignor(false);
       fetchConsignments();
     } catch (error) {
@@ -122,7 +123,7 @@ export const Consignments = () => {
       if (error) throw error;
       setItemForm({
         item_name: '',
-        quantity_total: 0,
+        quantity: 0,
         quantity_sold: 0,
         cost_per_item: 0,
         profit_per_item: 0
@@ -183,6 +184,15 @@ export const Consignments = () => {
                   value={consignorForm.phone}
                   onChange={(e) => setConsignorForm({ ...consignorForm, phone: e.target.value })}
                   required
+                />
+              </div>
+              <div>
+                <Label htmlFor="consignor-email">Email</Label>
+                <Input
+                  id="consignor-email"
+                  type="email"
+                  value={consignorForm.email}
+                  onChange={(e) => setConsignorForm({ ...consignorForm, email: e.target.value })}
                 />
               </div>
               <Button type="submit" className="neo-button bg-neo-blue text-white">
@@ -246,7 +256,7 @@ export const Consignments = () => {
                       {consignor.items.map((item) => (
                         <tr key={item.id} className="border-t">
                           <td className="p-2 font-medium">{item.item_name}</td>
-                          <td className="text-center p-2">{item.quantity_total}</td>
+                          <td className="text-center p-2">{item.quantity}</td>
                           <td className="text-center p-2">
                             <Input
                               type="number"
@@ -254,7 +264,7 @@ export const Consignments = () => {
                               onChange={(e) => updateItemSold(item.id, parseInt(e.target.value) || 0)}
                               className="w-16 text-center"
                               min="0"
-                              max={item.quantity_total}
+                              max={item.quantity}
                             />
                           </td>
                           <td className="text-center p-2">${item.cost_per_item.toFixed(2)}</td>
@@ -297,8 +307,8 @@ export const Consignments = () => {
                 <Input
                   id="quantity-total"
                   type="number"
-                  value={itemForm.quantity_total}
-                  onChange={(e) => setItemForm({ ...itemForm, quantity_total: parseInt(e.target.value) || 0 })}
+                  value={itemForm.quantity}
+                  onChange={(e) => setItemForm({ ...itemForm, quantity: parseInt(e.target.value) || 0 })}
                   required
                   min="0"
                 />

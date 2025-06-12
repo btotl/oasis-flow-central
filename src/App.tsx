@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import VouchersPage from "./pages/VouchersPage";
 import LaybyPage from "./pages/LaybyPage";
 import RequestsPage from "./pages/RequestsPage";
+import ReceiptMakerPage from "./pages/ReceiptMakerPage";
 import NotFound from "./pages/NotFound";
 import "./App.css";
 
@@ -53,6 +54,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <RequestsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/receipt-maker"
+                element={
+                  <ProtectedRoute>
+                    <ReceiptMakerPage />
                   </ProtectedRoute>
                 }
               />

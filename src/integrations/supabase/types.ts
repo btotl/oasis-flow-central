@@ -9,6 +9,143 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      calendar_events: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          event_date: string
+          event_time: string | null
+          event_type: string
+          id: string
+          related_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          event_date: string
+          event_time?: string | null
+          event_type?: string
+          id?: string
+          related_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          event_date?: string
+          event_time?: string | null
+          event_type?: string
+          id?: string
+          related_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      consignment_items: {
+        Row: {
+          consignor_id: string | null
+          cost_per_item: number
+          created_at: string | null
+          id: string
+          item_name: string
+          profit_per_item: number
+          quantity: number
+          quantity_sold: number
+          updated_at: string | null
+        }
+        Insert: {
+          consignor_id?: string | null
+          cost_per_item?: number
+          created_at?: string | null
+          id?: string
+          item_name: string
+          profit_per_item?: number
+          quantity?: number
+          quantity_sold?: number
+          updated_at?: string | null
+        }
+        Update: {
+          consignor_id?: string | null
+          cost_per_item?: number
+          created_at?: string | null
+          id?: string
+          item_name?: string
+          profit_per_item?: number
+          quantity?: number
+          quantity_sold?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consignment_items_consignor_id_fkey"
+            columns: ["consignor_id"]
+            isOneToOne: false
+            referencedRelation: "consignors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consignors: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       customer_credit: {
         Row: {
           created_at: string | null
@@ -45,6 +182,42 @@ export type Database = {
           notes?: string | null
           updated_at?: string | null
           updated_by_name?: string | null
+        }
+        Relationships: []
+      }
+      customer_loyalty: {
+        Row: {
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          points_balance: number
+          total_points_earned: number
+          total_points_redeemed: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          points_balance?: number
+          total_points_earned?: number
+          total_points_redeemed?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          points_balance?: number
+          total_points_earned?: number
+          total_points_redeemed?: number
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -297,6 +470,74 @@ export type Database = {
           role?: string
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      loyalty_transactions: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          customer_id: string | null
+          description: string | null
+          id: string
+          points_change: number
+          transaction_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          points_change: number
+          transaction_type: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          customer_id?: string | null
+          description?: string | null
+          id?: string
+          points_change?: number
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customer_loyalty"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manager_notes: {
+        Row: {
+          content: string
+          created_at: string | null
+          created_by: string
+          created_by_name: string
+          id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          created_by: string
+          created_by_name: string
+          id?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          created_by?: string
+          created_by_name?: string
+          id?: string
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

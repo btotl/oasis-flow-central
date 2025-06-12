@@ -70,7 +70,7 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
         </div>
         
         <div className="space-y-4 sm:space-y-6">
-          <ManagementTools />
+          <ManagementTools onOpenModal={() => {}} />
           <ManagerNotes />
           <EmployeeNotesManager />
         </div>

@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, Print, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Printer, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -309,7 +308,7 @@ const ReceiptMakerPage = () => {
               disabled={items.length === 0}
               className="neo-button bg-neo-blue text-white w-full"
             >
-              <Print size={20} className="mr-2" />
+              <Printer size={20} className="mr-2" />
               Print Receipt (ESC/POS)
             </Button>
           </div>

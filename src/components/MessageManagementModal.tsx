@@ -1,128 +1,119 @@
 
 import { useState } from 'react';
-import { ImportantMessage } from './ImportantMessage';
+import { X, Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
-interface MessageManagementModalProps {
-  messages: ImportantMessage[];
+export interface ImportantMessage {
+  id: string;
+  title: string;
+  message: string;
+  timestamp: Date;
+  acknowledgedBy: string[];
+}
+
+export interface MessageManagementModalProps {
   onClose: () => void;
-  onAddMessage: (message: { title: string; content: string }) => void;
-  onDeleteMessage: (messageId: string) => void;
+  importantMessages?: ImportantMessage[];
+  setImportantMessages?: (messages: ImportantMessage[]) => void;
 }
 
 export const MessageManagementModal = ({ 
-  messages, 
   onClose, 
-  onAddMessage, 
-  onDeleteMessage 
+  importantMessages = [], 
+  setImportantMessages 
 }: MessageManagementModalProps) => {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [newMessage, setNewMessage] = useState({ title: '', message: '' });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (title.trim() && content.trim()) {
-      onAddMessage({
-        title: title.trim(),
-        content: content.trim()
-      });
-      setTitle('');
-      setContent('');
-      setShowAddForm(false);
+  const addMessage = () => {
+    if (newMessage.title && newMessage.message && setImportantMessages) {
+      const message: ImportantMessage = {
+        id: Date.now().toString(),
+        title: newMessage.title,
+        message: newMessage.message,
+        timestamp: new Date(),
+        acknowledgedBy: []
+      };
+      setImportantMessages([...importantMessages, message]);
+      setNewMessage({ title: '', message: '' });
+    }
+  };
+
+  const deleteMessage = (id: string) => {
+    if (setImportantMessages) {
+      setImportantMessages(importantMessages.filter(msg => msg.id !== id));
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="neo-card p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Manage Important Messages</h2>
-          <button
-            onClick={onClose}
-            className="neo-button-danger"
-          >
-            Close
-          </button>
+          <Button onClick={onClose} className="neo-button bg-gray-500 text-white">
+            <X size={20} />
+          </Button>
         </div>
 
-        <div className="mb-6">
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="neo-button-primary"
-          >
-            {showAddForm ? 'Cancel' : 'Add New Message'}
-          </button>
-        </div>
-
-        {showAddForm && (
-          <form onSubmit={handleSubmit} className="mb-6 p-4 bg-gray-100 border-4 border-black">
+        <div className="space-y-6">
+          <div className="bg-gray-100 p-4 rounded-xl">
+            <h3 className="font-bold mb-4">Add New Message</h3>
             <div className="space-y-4">
               <div>
-                <label className="block font-bold mb-2">Message Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="neo-input w-full"
-                  required
+                <Label htmlFor="message-title">Title</Label>
+                <Input
+                  id="message-title"
+                  value={newMessage.title}
+                  onChange={(e) => setNewMessage({ ...newMessage, title: e.target.value })}
+                  placeholder="Enter message title"
                 />
               </div>
-              
               <div>
-                <label className="block font-bold mb-2">Message Content</label>
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="neo-input w-full h-24 resize-none"
-                  required
+                <Label htmlFor="message-content">Message</Label>
+                <Textarea
+                  id="message-content"
+                  value={newMessage.message}
+                  onChange={(e) => setNewMessage({ ...newMessage, message: e.target.value })}
+                  placeholder="Enter message content"
+                  rows={4}
                 />
               </div>
-              
-              <button
-                type="submit"
-                className="neo-button-primary"
-              >
-                Create Message
-              </button>
+              <Button onClick={addMessage} className="neo-button bg-neo-green text-white">
+                <Plus size={16} className="mr-2" />
+                Add Message
+              </Button>
             </div>
-          </form>
-        )}
+          </div>
 
-        <div className="space-y-4">
-          {messages.map((message) => (
-            <div key={message.id} className="bg-white border-4 border-black p-4">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="text-xl font-bold">{message.title}</h3>
-                <button
-                  onClick={() => onDeleteMessage(message.id)}
-                  className="neo-button-danger text-sm py-1 px-3"
-                >
-                  Delete
-                </button>
-              </div>
-              
-              <p className="text-gray-700 mb-4">{message.content}</p>
-              
-              <div className="bg-gray-50 border-2 border-gray-300 p-3">
-                <h4 className="font-bold mb-2">Acknowledgments:</h4>
-                {message.acknowledgedBy.length > 0 ? (
-                  <div className="space-y-1">
-                    {message.acknowledgedBy.map((ack, index) => (
-                      <div key={index} className="text-sm">
-                        <span className="font-medium">{ack.employeeName}</span> - {ack.acknowledgedAt.toLocaleString()}
-                      </div>
-                    ))}
+          <div>
+            <h3 className="font-bold mb-4">Current Messages ({importantMessages.length})</h3>
+            {importantMessages.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No important messages</p>
+            ) : (
+              <div className="space-y-3">
+                {importantMessages.map((msg) => (
+                  <div key={msg.id} className="bg-white border-2 border-gray-300 p-4 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-bold">{msg.title}</h4>
+                      <Button 
+                        onClick={() => deleteMessage(msg.id)}
+                        className="neo-button bg-red-500 text-white p-2"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                    <p className="text-gray-700 mb-2">{msg.message}</p>
+                    <div className="text-sm text-gray-500">
+                      <p>Created: {msg.timestamp.toLocaleString()}</p>
+                      <p>Acknowledged by: {msg.acknowledgedBy.length} people</p>
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-gray-500 text-sm">No acknowledgments yet</p>
-                )}
+                ))}
               </div>
-            </div>
-          ))}
-          
-          {messages.length === 0 && (
-            <p className="text-gray-500 text-center py-8">No messages created yet</p>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

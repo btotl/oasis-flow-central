@@ -1,12 +1,13 @@
 
 import { useState } from 'react';
-import { TaskList } from './TaskList';
-import { EmployeeNotes } from './EmployeeNotes';
-import { UrgentItems } from './UrgentItems';
-import { TimeTracking } from './TimeTracking';
 import { GiftVoucherModal } from './GiftVoucherModal';
 import { LaybyModal } from './LaybyModal';
 import { CustomerRequestModal } from './CustomerRequestModal';
+import { EmployeeTaskSection } from './employee/EmployeeTaskSection';
+import { EmployeeNotesSection } from './employee/EmployeeNotesSection';
+import { EmployeeTimeSection } from './employee/EmployeeTimeSection';
+import { EmployeeUrgentSection } from './employee/EmployeeUrgentSection';
+import { EmployeeQuickActions } from './employee/EmployeeQuickActions';
 
 export const EmployeeDashboard = () => {
   const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -23,39 +24,15 @@ export const EmployeeDashboard = () => {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
       {/* Left Side - Employee Tasks and Notes */}
       <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-        <TaskList />
-        <EmployeeNotes />
+        <EmployeeTaskSection />
+        <EmployeeNotesSection />
       </div>
 
       {/* Right Side - Time Tracking, Urgent Items and Quick Actions */}
       <div className="space-y-4 sm:space-y-6">
-        <TimeTracking />
-        <UrgentItems />
-        
-        {/* Quick Actions */}
-        <div className="neo-card p-4 sm:p-6">
-          <h3 className="text-xl sm:text-2xl font-bold mb-4 text-gray-900">Quick Actions</h3>
-          <div className="space-y-3">
-            <button
-              onClick={() => openModal('voucher')}
-              className="neo-button bg-neo-pink text-white w-full text-sm sm:text-base"
-            >
-              Gift Vouchers
-            </button>
-            <button
-              onClick={() => openModal('layby')}
-              className="neo-button bg-neo-blue text-white w-full text-sm sm:text-base"
-            >
-              Layby Tracker
-            </button>
-            <button
-              onClick={() => openModal('request')}
-              className="neo-button bg-neo-green text-white w-full text-sm sm:text-base"
-            >
-              Customer Requests
-            </button>
-          </div>
-        </div>
+        <EmployeeTimeSection />
+        <EmployeeUrgentSection />
+        <EmployeeQuickActions onOpenModal={openModal} />
       </div>
 
       {/* Modals */}

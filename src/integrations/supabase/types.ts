@@ -12,6 +12,7 @@ export type Database = {
       customer_credit: {
         Row: {
           created_at: string | null
+          created_by_name: string | null
           credit_amount: number
           customer_email: string | null
           customer_name: string
@@ -19,9 +20,11 @@ export type Database = {
           id: string
           notes: string | null
           updated_at: string | null
+          updated_by_name: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by_name?: string | null
           credit_amount?: number
           customer_email?: string | null
           customer_name: string
@@ -29,9 +32,11 @@ export type Database = {
           id?: string
           notes?: string | null
           updated_at?: string | null
+          updated_by_name?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by_name?: string | null
           credit_amount?: number
           customer_email?: string | null
           customer_name?: string
@@ -39,12 +44,14 @@ export type Database = {
           id?: string
           notes?: string | null
           updated_at?: string | null
+          updated_by_name?: string | null
         }
         Relationships: []
       }
       customer_requests: {
         Row: {
           assigned_to: string | null
+          assigned_to_name: string | null
           botanical_name: string | null
           category: string | null
           common_name: string
@@ -54,6 +61,7 @@ export type Database = {
           customer_phone: string | null
           id: string
           notes: string | null
+          requested_by_name: string | null
           size_specs: string | null
           status: string | null
           updated_at: string | null
@@ -61,6 +69,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          assigned_to_name?: string | null
           botanical_name?: string | null
           category?: string | null
           common_name: string
@@ -70,6 +79,7 @@ export type Database = {
           customer_phone?: string | null
           id?: string
           notes?: string | null
+          requested_by_name?: string | null
           size_specs?: string | null
           status?: string | null
           updated_at?: string | null
@@ -77,6 +87,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          assigned_to_name?: string | null
           botanical_name?: string | null
           category?: string | null
           common_name?: string
@@ -86,6 +97,7 @@ export type Database = {
           customer_phone?: string | null
           id?: string
           notes?: string | null
+          requested_by_name?: string | null
           size_specs?: string | null
           status?: string | null
           updated_at?: string | null
@@ -103,21 +115,27 @@ export type Database = {
       }
       employee_notes: {
         Row: {
+          archived: boolean | null
           author_id: string
+          author_name: string | null
           content: string
           created_at: string | null
           id: string
           updated_at: string | null
         }
         Insert: {
+          archived?: boolean | null
           author_id: string
+          author_name?: string | null
           content: string
           created_at?: string | null
           id?: string
           updated_at?: string | null
         }
         Update: {
+          archived?: boolean | null
           author_id?: string
+          author_name?: string | null
           content?: string
           created_at?: string | null
           id?: string
@@ -207,6 +225,7 @@ export type Database = {
       laybys: {
         Row: {
           created_at: string | null
+          created_by_name: string | null
           customer_name: string
           customer_phone: string | null
           id: string
@@ -217,9 +236,11 @@ export type Database = {
           status: string | null
           total_amount: number
           updated_at: string | null
+          updated_by_name: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by_name?: string | null
           customer_name: string
           customer_phone?: string | null
           id?: string
@@ -230,9 +251,11 @@ export type Database = {
           status?: string | null
           total_amount: number
           updated_at?: string | null
+          updated_by_name?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by_name?: string | null
           customer_name?: string
           customer_phone?: string | null
           id?: string
@@ -243,6 +266,37 @@ export type Database = {
           status?: string | null
           total_amount?: number
           updated_at?: string | null
+          updated_by_name?: string | null
+        }
+        Relationships: []
+      }
+      layout_configurations: {
+        Row: {
+          created_at: string | null
+          dashboard_type: string
+          id: string
+          layout_config: Json
+          role: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dashboard_type?: string
+          id?: string
+          layout_config?: Json
+          role?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dashboard_type?: string
+          id?: string
+          layout_config?: Json
+          role?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -312,7 +366,9 @@ export type Database = {
           assigned_to: string | null
           before_image_url: string | null
           completed: boolean | null
+          completed_by_name: string | null
           created_at: string | null
+          created_by_name: string | null
           description: string | null
           due_date: string | null
           hidden_until: string | null
@@ -328,7 +384,9 @@ export type Database = {
           assigned_to?: string | null
           before_image_url?: string | null
           completed?: boolean | null
+          completed_by_name?: string | null
           created_at?: string | null
+          created_by_name?: string | null
           description?: string | null
           due_date?: string | null
           hidden_until?: string | null
@@ -344,7 +402,9 @@ export type Database = {
           assigned_to?: string | null
           before_image_url?: string | null
           completed?: boolean | null
+          completed_by_name?: string | null
           created_at?: string | null
+          created_by_name?: string | null
           description?: string | null
           due_date?: string | null
           hidden_until?: string | null
@@ -372,6 +432,7 @@ export type Database = {
           created_at: string | null
           date: string
           employee_id: string
+          employee_name: string | null
           id: string
           total_hours: number | null
           updated_at: string | null
@@ -382,6 +443,7 @@ export type Database = {
           created_at?: string | null
           date: string
           employee_id: string
+          employee_name?: string | null
           id?: string
           total_hours?: number | null
           updated_at?: string | null
@@ -392,6 +454,7 @@ export type Database = {
           created_at?: string | null
           date?: string
           employee_id?: string
+          employee_name?: string | null
           id?: string
           total_hours?: number | null
           updated_at?: string | null
@@ -411,6 +474,7 @@ export type Database = {
           amount: number
           code: string
           created_at: string | null
+          created_by_name: string | null
           customer_email: string | null
           customer_name: string
           expiry_date: string | null
@@ -418,12 +482,14 @@ export type Database = {
           id: string
           status: string | null
           updated_at: string | null
+          updated_by_name: string | null
           used_amount: number | null
         }
         Insert: {
           amount: number
           code: string
           created_at?: string | null
+          created_by_name?: string | null
           customer_email?: string | null
           customer_name: string
           expiry_date?: string | null
@@ -431,12 +497,14 @@ export type Database = {
           id?: string
           status?: string | null
           updated_at?: string | null
+          updated_by_name?: string | null
           used_amount?: number | null
         }
         Update: {
           amount?: number
           code?: string
           created_at?: string | null
+          created_by_name?: string | null
           customer_email?: string | null
           customer_name?: string
           expiry_date?: string | null
@@ -444,6 +512,7 @@ export type Database = {
           id?: string
           status?: string | null
           updated_at?: string | null
+          updated_by_name?: string | null
           used_amount?: number | null
         }
         Relationships: []

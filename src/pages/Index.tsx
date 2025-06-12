@@ -24,12 +24,22 @@ const Index = () => {
   useEffect(() => {
     if (profile?.role === 'manager') {
       setIsManagerAuthenticated(true);
+      // Check if manager was previously in manager view (persistent session)
+      const wasManagerView = localStorage.getItem('isManagerView') === 'true';
+      if (wasManagerView) {
+        setIsManagerView(true);
+      }
     }
   }, [profile]);
 
   useEffect(() => {
     fetchImportantMessages();
   }, [user]);
+
+  // Persist manager view state
+  useEffect(() => {
+    localStorage.setItem('isManagerView', isManagerView.toString());
+  }, [isManagerView]);
 
   const fetchImportantMessages = async () => {
     if (!user) return;
@@ -126,6 +136,12 @@ const Index = () => {
     }, 60000); // 1 minute for demo purposes
   };
 
+  const handleSignOut = () => {
+    // Clear manager view state on sign out
+    localStorage.removeItem('isManagerView');
+    signOut();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -153,7 +169,7 @@ const Index = () => {
                 {isManagerView ? 'Switch to Employee View' : 'Manager Access'}
               </button>
               <button
-                onClick={() => signOut()}
+                onClick={handleSignOut}
                 className="neo-button bg-red-500 text-white"
               >
                 Sign Out
@@ -163,6 +179,7 @@ const Index = () => {
           {profile && (
             <div className="mt-2 text-gray-600">
               Welcome back, {profile.first_name}! ({profile.role})
+              {isManagerView && <span className="ml-2 text-blue-600 font-medium">[Manager Mode]</span>}
             </div>
           )}
         </div>

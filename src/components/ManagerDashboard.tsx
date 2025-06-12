@@ -15,6 +15,10 @@ import { ManagerHeader } from './manager/ManagerHeader';
 import { ManagementTools } from './manager/ManagementTools';
 import { AddTaskForm } from './manager/AddTaskForm';
 import { EmployeeNotesManager } from './manager/EmployeeNotesManager';
+import { ManagerNotes } from './manager/ManagerNotes';
+import { Consignments } from './manager/Consignments';
+import { ReceiptMaker } from './manager/ReceiptMaker';
+import { PlantLookup } from './manager/PlantLookup';
 
 interface ManagerDashboardProps {
   importantMessages: ImportantMessage[];
@@ -84,7 +88,19 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
       {/* Management Actions */}
       <ManagementTools onOpenModal={openModal} />
 
-      {/* Tasks and Notes */}
+      {/* New Features Row 1 */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+        <ManagerNotes />
+        <Consignments />
+      </div>
+
+      {/* New Features Row 2 */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+        <ReceiptMaker />
+        <PlantLookup />
+      </div>
+
+      {/* Tasks and Employee Notes */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <div className="space-y-4">
           <AddTaskForm />

@@ -1,7 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { GripVertical, Eye, EyeOff, Settings } from 'lucide-react';
+import { GripVertical, Eye, EyeOff, X, Save } from 'lucide-react';
+import { Button } from './ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface LayoutComponent {
   id: string;
@@ -12,16 +15,67 @@ interface LayoutComponent {
 
 interface LayoutEditorProps {
   onClose: () => void;
+  dashboardType: 'employee' | 'manager';
 }
 
-export const LayoutEditor = ({ onClose }: LayoutEditorProps) => {
-  const [components, setComponents] = useState<LayoutComponent[]>([
-    { id: 'tasks', name: 'To-Do List', visible: true, order: 0 },
-    { id: 'time-tracking', name: 'Time Tracker', visible: true, order: 1 },
-    { id: 'notes', name: 'Employee Notes', visible: true, order: 2 },
-    { id: 'urgent-items', name: 'Urgent Items', visible: true, order: 3 },
-    { id: 'quick-actions', name: 'Quick Actions', visible: true, order: 4 },
-  ]);
+export const LayoutEditor = ({ onClose, dashboardType }: LayoutEditorProps) => {
+  const { user } = useAuth();
+  const [components, setComponents] = useState<LayoutComponent[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadLayout();
+  }, [dashboardType]);
+
+  const getDefaultComponents = () => {
+    if (dashboardType === 'employee') {
+      return [
+        { id: 'tasks', name: 'To-Do List', visible: true, order: 0 },
+        { id: 'time-tracking', name: 'Time Tracker', visible: true, order: 1 },
+        { id: 'notes', name: 'Employee Notes', visible: true, order: 2 },
+        { id: 'urgent-items', name: 'Urgent Items', visible: true, order: 3 },
+        { id: 'quick-actions', name: 'Quick Actions', visible: true, order: 4 },
+      ];
+    } else {
+      return [
+        { id: 'add-task', name: 'Add Task Form', visible: true, order: 0 },
+        { id: 'management-tools', name: 'Management Tools', visible: true, order: 1 },
+        { id: 'manager-notes', name: 'Manager Notes', visible: true, order: 2 },
+        { id: 'employee-notes', name: 'Employee Notes Manager', visible: true, order: 3 },
+        { id: 'customer-requests', name: 'Customer Request Tracking', visible: true, order: 4 },
+        { id: 'calendar', name: 'Integrated Calendar', visible: true, order: 5 },
+        { id: 'consignments', name: 'Consignments', visible: true, order: 6 },
+        { id: 'customer-loyalty', name: 'Customer Loyalty', visible: true, order: 7 },
+        { id: 'templates', name: 'Customizable Templates', visible: true, order: 8 },
+      ];
+    }
+  };
+
+  const loadLayout = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('layout_configurations')
+        .select('layout_config')
+        .eq('user_id', user.id)
+        .eq('dashboard_type', dashboardType)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      if (data?.layout_config) {
+        setComponents(data.layout_config as LayoutComponent[]);
+      } else {
+        setComponents(getDefaultComponents());
+      }
+    } catch (error) {
+      console.error('Error loading layout:', error);
+      setComponents(getDefaultComponents());
+    }
+  };
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -30,7 +84,6 @@ export const LayoutEditor = ({ onClose }: LayoutEditorProps) => {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    // Update order values
     const updatedItems = items.map((item, index) => ({
       ...item,
       order: index
@@ -45,22 +98,45 @@ export const LayoutEditor = ({ onClose }: LayoutEditorProps) => {
     ));
   };
 
-  const saveLayout = () => {
-    // Here you would save to Supabase or localStorage
-    console.log('Saving layout:', components);
-    onClose();
+  const saveLayout = async () => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      await supabase
+        .from('layout_configurations')
+        .upsert(
+          {
+            user_id: user.id,
+            dashboard_type: dashboardType,
+            layout_config: components,
+            role: dashboardType === 'manager' ? 'manager' : 'employee'
+          },
+          {
+            onConflict: 'user_id,dashboard_type'
+          }
+        );
+
+      onClose();
+    } catch (error) {
+      console.error('Error saving layout:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="neo-card p-6 max-w-md w-full rounded-3xl max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Edit Employee View Layout</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Edit {dashboardType === 'employee' ? 'Employee' : 'Manager'} Layout
+          </h2>
           <button
             onClick={onClose}
             className="neo-button text-gray-600 hover:text-gray-800"
           >
-            ✕
+            <X size={24} />
           </button>
         </div>
 
@@ -113,18 +189,20 @@ export const LayoutEditor = ({ onClose }: LayoutEditorProps) => {
         </div>
 
         <div className="flex gap-3">
-          <button
+          <Button
             onClick={saveLayout}
+            disabled={loading}
             className="neo-button-primary flex-1"
           >
-            Save Layout
-          </button>
-          <button
+            <Save size={16} className="mr-2" />
+            {loading ? 'Saving...' : 'Save Layout'}
+          </Button>
+          <Button
             onClick={onClose}
             className="neo-button flex-1"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     </div>

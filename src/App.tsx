@@ -11,6 +11,7 @@ import VouchersPage from "./pages/VouchersPage";
 import LaybyPage from "./pages/LaybyPage";
 import RequestsPage from "./pages/RequestsPage";
 import ReceiptMakerPage from "./pages/ReceiptMakerPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import "./App.css";
 
@@ -62,6 +63,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ReceiptMakerPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <SettingsPage />
                   </ProtectedRoute>
                 }
               />

@@ -12,11 +12,12 @@ import { CustomerLoyalty } from './manager/CustomerLoyalty';
 import { IntegratedCalendar } from './manager/IntegratedCalendar';
 import { CustomerRequestTracking } from './manager/CustomerRequestTracking';
 import { CustomizableTemplates } from './manager/CustomizableTemplates';
-import { ImportantMessage } from './ImportantMessage';
+import { ImportantMessage } from '@/types/ImportantMessage';
 import { MessageManagementModal } from './MessageManagementModal';
 import { PlantLookupModal } from './PlantLookupModal';
+import { LayoutEditor } from './LayoutEditor';
 import { Button } from './ui/button';
-import { Receipt, Leaf } from 'lucide-react';
+import { Receipt, Leaf, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface ManagerDashboardProps {
@@ -28,6 +29,7 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
   const navigate = useNavigate();
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [showPlantLookup, setShowPlantLookup] = useState(false);
+  const [showLayoutEditor, setShowLayoutEditor] = useState(false);
 
   const handleNavigateToReceipt = () => {
     navigate('/receipt-maker');
@@ -42,6 +44,7 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
       <ManagerHeader 
         importantMessages={importantMessages}
         onOpenMessageModal={() => setShowMessageModal(true)}
+        onOpenLayoutEditor={() => setShowLayoutEditor(true)}
       />
       
       {/* Quick Actions */}
@@ -59,6 +62,13 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
         >
           <Leaf size={20} className="mr-2" />
           Plant Lookup
+        </Button>
+        <Button 
+          onClick={() => navigate('/settings')}
+          className="neo-button bg-neo-purple text-white"
+        >
+          <Settings size={20} className="mr-2" />
+          Settings
         </Button>
       </div>
 
@@ -95,6 +105,13 @@ export const ManagerDashboard = ({ importantMessages, setImportantMessages }: Ma
         isOpen={showPlantLookup}
         onClose={() => setShowPlantLookup(false)}
       />
+
+      {showLayoutEditor && (
+        <LayoutEditor
+          onClose={() => setShowLayoutEditor(false)}
+          dashboardType="manager"
+        />
+      )}
     </div>
   );
 };
